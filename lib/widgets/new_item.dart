@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_list/data/categories.dart';
+import 'package:shopping_list/models/category.dart';
+import 'package:shopping_list/models/grocery_item.dart';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
 
   @override
-  _NewItemState createState() => _NewItemState();
+  State<NewItem> createState() => _NewItemState();
 }
 
 class _NewItemState extends State<NewItem> {
   final _formKey = GlobalKey<FormState>();
+  String _enteredName = '';
+  int _enteredQuantity = 1;
+  Category _selectedCategory = categories[Categories.vegetables]!;
 
   void _saveItem() {
-    _formKey.currentState!.validate();
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _formKey.currentState!.save();
+    Navigator.of(context).pop(GroceryItem(
+        id: DateTime.now().toString(),
+        name: _enteredName,
+        quantity: _enteredQuantity,
+        category: _selectedCategory));
   }
 
   void _resetForm() {
@@ -57,6 +70,12 @@ class _NewItemState extends State<NewItem> {
                   label: Text('Name'),
                 ),
                 validator: _validateName,
+                onSaved: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  _enteredName = value;
+                },
               ), // instead of TextField
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -67,29 +86,44 @@ class _NewItemState extends State<NewItem> {
                       decoration: const InputDecoration(
                         label: Text('Quantity'),
                       ),
-                      initialValue: '1',
+                      initialValue: _enteredQuantity.toString(),
                       validator: _validateQuantity,
+                      onSaved: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        _enteredQuantity = int.parse(value);
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: DropdownButtonFormField(items: [
-                      for (final category in categories.values)
-                        DropdownMenuItem(
-                          value: category,
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                color: category.color,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(category.title)
-                            ],
-                          ),
-                        )
-                    ], onChanged: (value) {}),
+                    child: DropdownButtonFormField(
+                      value: _selectedCategory,
+                      items: [
+                        for (final category in categories.values)
+                          DropdownMenuItem(
+                            value: category,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  color: category.color,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(category.title)
+                              ],
+                            ),
+                          )
+                      ],
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        _selectedCategory = value;
+                      },
+                    ),
                   ),
                 ],
               ),
