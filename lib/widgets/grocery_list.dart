@@ -26,39 +26,50 @@ class _GroceryListState extends State<GroceryList> {
   }
 
   void _loadItems() async {
-    final url = Uri.https(
-      firebaseUrl,
-      'shopping-list.json',
-    );
-    final response = await http.get(url);
-    if (response.statusCode >= 400) {
-      setState(() {
-        _error = 'Failed to load items';
-      });
-      return;
-    }
-    final Map<String, dynamic> listData = json.decode(response.body);
-    final List<GroceryItem> loadedItems = [];
-    for (final item in listData.entries) {
-      final category = categories.entries
-          .firstWhere(
-            (categoryItem) =>
-                categoryItem.value.title == item.value['category'],
-          )
-          .value;
-      loadedItems.add(
-        GroceryItem(
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity'],
-          category: category,
-        ),
+    try {
+      final url = Uri.https(
+        firebaseUrl,
+        'shopping-list.json',
       );
+      final response = await http.get(url);
+      if (response.statusCode >= 400) {
+        throw Exception('Failed to load items');
+      }
+      // empty db
+      if (response.body == 'null') {
+        return;
+      }
+
+      final Map<String, dynamic> listData = json.decode(response.body);
+      final List<GroceryItem> loadedItems = [];
+      for (final item in listData.entries) {
+        final category = categories.entries
+            .firstWhere(
+              (categoryItem) =>
+                  categoryItem.value.title == item.value['category'],
+            )
+            .value;
+        loadedItems.add(
+          GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category,
+          ),
+        );
+      }
+      setState(() {
+        _groceryItems = loadedItems;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-    setState(() {
-      _groceryItems = loadedItems;
-      _isLoading = false;
-    });
   }
 
   void _addItem() async {
@@ -98,7 +109,7 @@ class _GroceryListState extends State<GroceryList> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Center(child: const Text('No items yet!.'));
+    Widget content = const Center(child: Text('No items yet!'));
 
     if (_isLoading) {
       content = const Center(
