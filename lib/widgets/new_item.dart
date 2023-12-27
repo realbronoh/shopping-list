@@ -9,6 +9,26 @@ class NewItem extends StatefulWidget {
 }
 
 class _NewItemState extends State<NewItem> {
+  String? _validateName(String? value) {
+    if (value == null ||
+        value.isEmpty ||
+        value.trim().length <= 1 ||
+        value.trim().length > 50) {
+      return 'Must be between 1 and 50 characters!';
+    }
+    return null;
+  }
+
+  String? _validateQuantity(String? value) {
+    if (value == null ||
+        value.isEmpty ||
+        int.tryParse(value) == null ||
+        int.tryParse(value)! <= 0) {
+      return 'Must be a valid positive number!';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +45,7 @@ class _NewItemState extends State<NewItem> {
                 decoration: const InputDecoration(
                   label: Text('Name'),
                 ),
-                // validator: (value) {},
+                validator: _validateName,
               ), // instead of TextField
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -36,6 +56,7 @@ class _NewItemState extends State<NewItem> {
                         label: Text('Quantity'),
                       ),
                       initialValue: '1',
+                      validator: _validateQuantity,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -59,7 +80,21 @@ class _NewItemState extends State<NewItem> {
                     ], onChanged: (value) {}),
                   ),
                 ],
-              )
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text("Reset"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text("Add Item"),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
